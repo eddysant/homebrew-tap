@@ -1,8 +1,8 @@
 class Mediate < Formula
-  desc "Standardize a media library: photos to lossless WebP, videos to MP4, validated-then-Trash"
+  desc "Standardize photos and videos with strict validation before trashing originals"
   homepage "https://github.com/eddysant/mediate"
-  url "https://github.com/eddysant/mediate/archive/refs/tags/v0.4.0.tar.gz"
-  sha256 "54f0f02774813d48ba1af527583d18f32fad5718e61c1e19f19f58ee0f8c191a"
+  url "https://github.com/eddysant/mediate/archive/refs/tags/v0.5.0.tar.gz"
+  sha256 "1f15b4d5f2224c607f4e8adb7a430e241441cd0d64de804a09801f926a081dba"
   license "MIT"
 
   depends_on "ffmpeg"
@@ -11,7 +11,7 @@ class Mediate < Formula
 
   def install
     libexec.install "mediate"
-    python = Formula["python@3.14"].opt_bin/"python3.14"
+    python = formula_opt_bin("python@3.14")/"python3.14"
     (bin/"mediate").write <<~SH
       #!/bin/bash
       PYTHONPATH="#{libexec}" exec "#{python}" -m mediate "$@"
