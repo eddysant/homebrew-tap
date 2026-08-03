@@ -1,11 +1,12 @@
 class Mediate < Formula
   desc "Standardize photos and videos with strict validation before trashing originals"
   homepage "https://github.com/eddysant/mediate"
-  url "https://github.com/eddysant/mediate/archive/refs/tags/v0.8.0.tar.gz"
-  sha256 "79942832b2ad9e8ffa4325f2947d8790a475d1a5a614c7fd24571a337acd112b"
+  url "https://github.com/eddysant/mediate/archive/refs/tags/v0.8.2.tar.gz"
+  sha256 "ede24230fc3cdd5f8f7c9801a57516c0159d0994597384917679332dabb7e0f5"
   license "MIT"
 
   depends_on "ffmpeg"
+  depends_on "jpeg-turbo"
   depends_on "python@3.14"
   depends_on "webp"
 
