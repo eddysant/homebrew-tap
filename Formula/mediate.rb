@@ -1,10 +1,11 @@
 class Mediate < Formula
   desc "Standardize photos and videos with strict validation before trashing originals"
   homepage "https://github.com/eddysant/mediate"
-  url "https://github.com/eddysant/mediate/archive/refs/tags/v0.8.2.tar.gz"
-  sha256 "ede24230fc3cdd5f8f7c9801a57516c0159d0994597384917679332dabb7e0f5"
+  url "https://github.com/eddysant/mediate/archive/refs/tags/v0.8.3.tar.gz"
+  sha256 "89e384df2b04f2e50c5a49daacf6dbeaad8c6da72085f7012b7d86f529739b2b"
   license "MIT"
 
+  depends_on "exiftool"
   depends_on "ffmpeg"
   depends_on "jpeg-turbo"
   depends_on "python@3.14"
@@ -17,14 +18,6 @@ class Mediate < Formula
       #!/bin/bash
       PYTHONPATH="#{libexec}" exec "#{python}" -m mediate "$@"
     SH
-  end
-
-  def caveats
-    <<~EOS
-      exiftool is optional but recommended — it powers metadata validation,
-      --date-prefix, and Live Photo verification:
-        brew install exiftool
-    EOS
   end
 
   test do
