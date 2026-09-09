@@ -3,7 +3,24 @@ set -euo pipefail
 
 repository="eddysant/photo-slap-modern"
 cask_file="Casks/photo-slap.rb"
-release_json="$(curl -fsSL -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${repository}/releases/latest")"
+# Authenticate the API call when a token is available. Unauthenticated
+# api.github.com requests from Actions runners share a per-IP pool capped at
+# 60/hour, which is what caused the intermittent 403s on this schedule.
+fetch_release() {
+  if [ -n "${GH_TOKEN:-}" ]; then
+    curl -fsSL --retry 3 --retry-all-errors \
+      -H 'Accept: application/vnd.github+json' \
+      -H 'X-GitHub-Api-Version: 2022-11-28' \
+      -H "Authorization: Bearer ${GH_TOKEN}" \
+      "https://api.github.com/repos/${repository}/releases/latest"
+  else
+    curl -fsSL --retry 3 --retry-all-errors \
+      -H 'Accept: application/vnd.github+json' \
+      -H 'X-GitHub-Api-Version: 2022-11-28' \
+      "https://api.github.com/repos/${repository}/releases/latest"
+  fi
+}
+release_json="$(fetch_release)"
 version="$(jq -r '.tag_name // empty' <<<"${release_json}")"
 version="${version#v}"
 
