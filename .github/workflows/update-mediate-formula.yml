@@ -1,0 +1,37 @@
+name: Update mediate Formula
+
+on:
+  schedule:
+    # Offset from the photo-slap cask schedule so the two jobs do not race each
+    # other pushing to this repo.
+    - cron: "47 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Update the formula from the latest GitHub Release
+        env:
+          # The built-in token is enough: this workflow reads a public release and
+          # commits to its own repository. No cross-repo PAT is involved.
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/update-mediate-formula.sh
+      - name: Validate formula style
+        run: brew style Formula/mediate.rb
+      - name: Commit an updated formula
+        run: |
+          if git diff --quiet -- Formula/mediate.rb; then
+            echo "Formula is already current"
+            exit 0
+          fi
+          version="$(sed -n 's|.*/archive/refs/tags/v\([0-9][^"]*\)\.tar\.gz.*|\1|p' Formula/mediate.rb)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/mediate.rb
+          git commit -m "Update mediate formula to ${version}"
+          git push
