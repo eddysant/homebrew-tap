@@ -3,6 +3,7 @@ set -euo pipefail
 
 repository="eddysant/siftr"
 cask_file="Casks/siftr.rb"
+formula_file="Formula/siftr.rb"
 # Authenticate the API call when a token is available. Unauthenticated
 # api.github.com requests from Actions runners share a per-IP pool capped at
 # 60/hour, which is what caused the intermittent 403s on this schedule.
@@ -60,3 +61,26 @@ VERSION="${version}" SHA256="${sha256}" ruby -e '
 ' "${cask_file}"
 
 echo "Updated siftr cask to ${version} (${sha256})"
+
+# The formula tracks the same release, from the source tarball rather than the
+# DMG. Bumping only the cask would leave the app and the engine it drives on
+# different versions — the one mismatch this tap cannot detect at install time.
+tarball_url="https://github.com/${repository}/archive/refs/tags/v${version}.tar.gz"
+curl -fsSL --retry 3 --output "${download_dir}/src.tar.gz" "${tarball_url}"
+if ! gzip -t "${download_dir}/src.tar.gz" 2>/dev/null; then
+  echo "Source tarball for v${version} is not a valid gzip archive" >&2
+  exit 1
+fi
+src_sha="$(shasum -a 256 "${download_dir}/src.tar.gz" | awk '{print $1}')"
+
+VERSION="${version}" SHA256="${src_sha}" ruby -e '
+  file = ARGV.fetch(0)
+  contents = File.read(file, encoding: "UTF-8")
+  contents.sub!(%r{/archive/refs/tags/v[^"]+\.tar\.gz}, "/archive/refs/tags/v#{ENV.fetch("VERSION")}.tar.gz") or
+    abort "formula url stanza not found"
+  contents.sub!(/sha256 "[0-9a-f]+"/, %(sha256 "#{ENV.fetch("SHA256")}")) or
+    abort "formula sha256 stanza not found"
+  File.write(file, contents, encoding: "UTF-8")
+' "${formula_file}"
+
+echo "Updated siftr formula to ${version} (${src_sha})"
