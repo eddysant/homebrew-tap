@@ -48,8 +48,10 @@ class Siftr < Formula
   # the rewriting is done, is what makes the install usable. The same wheels
   # installed by plain pip are never rewritten, which is why this only bites
   # under brew.
-  def post_install_steps
-    Dir.glob("#{libexec}/lib/python3.12/site-packages/**/*.{so,dylib}").each do |macho|
+  def post_install
+    machos = Dir.glob("#{libexec}/lib/python3.12/site-packages/**/*.{so,dylib}")
+    ohai "Re-signing #{machos.count} Mach-O files"
+    machos.each do |macho|
       system "/usr/bin/codesign", "--force", "--sign", "-", macho
     end
   end
