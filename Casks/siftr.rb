@@ -2,8 +2,7 @@ cask "siftr" do
   version "0.1.0"
   sha256 "c9bac13b378c4241f0ca3d7ee79c8bc1fd96508d054518b695796734fcd62654"
 
-  url "https://github.com/eddysant/siftr/releases/download/v#{version}/siftr-#{version}-arm64.dmg",
-      verified: "github.com/eddysant/siftr/"
+  url "https://github.com/eddysant/siftr/releases/download/v#{version}/siftr-#{version}-arm64.dmg"
   name "siftr"
   desc "Find media by example: teach a tag with a folder of photos, then search"
   homepage "https://github.com/eddysant/siftr"

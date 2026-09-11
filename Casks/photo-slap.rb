@@ -2,8 +2,7 @@ cask "photo-slap" do
   version "1.6.2"
   sha256 "6e9c0be3c80139d5c732afa1a31afa861efcd010ad461f6876656de4dcfb5b26"
 
-  url "https://github.com/eddysant/photo-slap-modern/releases/download/v#{version}/photo-slap-Mac-#{version}-Installer.dmg",
-      verified: "github.com/eddysant/photo-slap-modern/"
+  url "https://github.com/eddysant/photo-slap-modern/releases/download/v#{version}/photo-slap-Mac-#{version}-Installer.dmg"
   name "photo-slap"
   desc "Retro-styled photo and video slideshow"
   homepage "https://github.com/eddysant/photo-slap-modern"
