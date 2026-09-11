@@ -32,6 +32,16 @@ class Siftr < Formula
            "--python=#{libexec}/bin/python", "install", "--no-cache-dir",
            "#{buildpath}[ui,faces,video]"
 
+    # Homebrew rewrites Mach-O binaries during install (relocation, install-name
+    # fixing). That invalidates the ad-hoc signatures on the dylibs pip wheels
+    # bundle under .dylibs/, and macOS then SIGKILLs any process that loads one:
+    # `from PIL import Image` dies instantly with no output and no traceback.
+    # Re-signing ad-hoc restores them. The same wheels installed by plain pip are
+    # untouched and therefore fine, which is why this only bites under brew.
+    Dir.glob("#{libexec}/lib/python3.12/site-packages/**/*.{so,dylib}").each do |macho|
+      system "/usr/bin/codesign", "--force", "--sign", "-", macho
+    end
+
     bin.install_symlink libexec/"bin/siftr"
   end
 
@@ -47,6 +57,9 @@ class Siftr < Formula
 
   test do
     assert_match version.to_s, shell_output("#{bin}/siftr --version")
+    # Loads Pillow's native extension and its bundled dylibs — the import that
+    # Homebrew's binary rewriting silently kills without the re-signing above.
+    system libexec/"bin/python", "-c", "from PIL import Image; import numpy"
     # A real end-to-end check would download CLIP; exercising the database and
     # argument paths proves the install without a 600 MB side effect.
     system bin/"siftr", "--db", "#{testpath}/index.db", "status"
