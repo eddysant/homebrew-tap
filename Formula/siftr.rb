@@ -9,12 +9,12 @@ class Siftr < Formula
 
   depends_on "ffmpeg"
   depends_on "libheif"
+  depends_on "python@3.12"
 
   # Homebrew's cleaner strips Mach-O binaries, which invalidates the ad-hoc
   # signatures pip wheels ship on their bundled dylibs. Stripping a third-party
   # wheel buys nothing here and costs a working install.
   skip_clean "libexec"
-  depends_on "python@3.12"
   # Video frame sampling shells out to ffmpeg when PyAV is absent.
   # pillow-heif links libheif; without HEIC, most of a Mac photo library is
   # unreadable.
@@ -49,7 +49,13 @@ class Siftr < Formula
   # installed by plain pip are never rewritten, which is why this only bites
   # under brew.
   def post_install
-    machos = Dir.glob("#{libexec}/lib/python3.12/site-packages/**/*.{so,dylib}")
+    # FNM_DOTMATCH is essential: wheels bundle their dylibs in a *dotted*
+    # directory (`.dylibs/`), which Dir.glob skips by default — and those are
+    # precisely the files whose signatures got invalidated.
+    machos = Dir.glob(
+      "#{libexec}/lib/python3.12/site-packages/**/*.{so,dylib}",
+      File::FNM_DOTMATCH,
+    )
     ohai "Re-signing #{machos.count} Mach-O files"
     machos.each do |macho|
       system "/usr/bin/codesign", "--force", "--sign", "-", macho
