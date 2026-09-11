@@ -32,17 +32,21 @@ class Siftr < Formula
            "--python=#{libexec}/bin/python", "install", "--no-cache-dir",
            "#{buildpath}[ui,faces,video]"
 
-    # Homebrew rewrites Mach-O binaries during install (relocation, install-name
-    # fixing). That invalidates the ad-hoc signatures on the dylibs pip wheels
-    # bundle under .dylibs/, and macOS then SIGKILLs any process that loads one:
-    # `from PIL import Image` dies instantly with no output and no traceback.
-    # Re-signing ad-hoc restores them. The same wheels installed by plain pip are
-    # untouched and therefore fine, which is why this only bites under brew.
+    bin.install_symlink libexec/"bin/siftr"
+  end
+
+  # Deliberately post_install, not install. Homebrew rewrites Mach-O binaries
+  # (relocation, install-name fixing) *after* `install` returns, which
+  # invalidates the ad-hoc signatures on the dylibs that pip wheels bundle under
+  # .dylibs/. macOS then SIGKILLs any process that loads one — `from PIL import
+  # Image` dies instantly with no output and no traceback. Re-signing here, once
+  # the rewriting is done, is what makes the install usable. The same wheels
+  # installed by plain pip are never rewritten, which is why this only bites
+  # under brew.
+  def post_install
     Dir.glob("#{libexec}/lib/python3.12/site-packages/**/*.{so,dylib}").each do |macho|
       system "/usr/bin/codesign", "--force", "--sign", "-", macho
     end
-
-    bin.install_symlink libexec/"bin/siftr"
   end
 
   def caveats
