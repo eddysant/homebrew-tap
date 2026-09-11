@@ -11,12 +11,12 @@ cask "siftr" do
     strategy :github_latest
   end
 
+  depends_on arch: :arm64
   # The app is the interface; this is the engine it drives. Declaring it means
   # `brew install --cask siftr` gets a working install in one command, with no
   # pip step and no SIFTR_BIN — /opt/homebrew/bin is one of the paths the app
   # probes, so it finds the formula's `siftr` on its own.
   depends_on formula: "eddysant/tap/siftr"
-  depends_on arch: :arm64
   depends_on macos: :monterey
 
   app "siftr.app"
@@ -35,6 +35,9 @@ cask "siftr" do
     siftr is currently unsigned. If macOS reports that it is damaged, clear the
     quarantine flag once after installation:
 
-      xattr -cr /Applications/siftr.app
+      xattr -dr com.apple.quarantine /Applications/siftr.app
+
+    You will need this again after each upgrade: every install stages a fresh
+    copy, so the flag comes back.
   EOS
 end

@@ -25,6 +25,9 @@ cask "photo-slap" do
   caveats <<~EOS
     photo-slap is currently unsigned. If macOS reports that it is damaged,
     clear the quarantine flag once after installation:
-      xattr -cr /Applications/photo-slap.app
+      xattr -dr com.apple.quarantine /Applications/photo-slap.app
+
+    You will need this again after each upgrade: every install stages a fresh
+    copy, so the flag comes back.
   EOS
 end
