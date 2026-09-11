@@ -1,0 +1,34 @@
+name: Update siftr Cask
+
+on:
+  schedule:
+    # Offset from the other two cask jobs so they do not race pushing here.
+    - cron: "7 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Update Cask from the latest GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/update-siftr-cask.sh
+      - name: Validate Cask style
+        run: brew style Casks/siftr.rb
+      - name: Commit an updated Cask
+        run: |
+          if git diff --quiet -- Casks/siftr.rb; then
+            echo "Cask is already current"
+            exit 0
+          fi
+          version="$(sed -n 's/^[[:space:]]*version "\([^"]*\)"/\1/p' Casks/siftr.rb)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/siftr.rb
+          git commit -m "Update siftr cask to ${version}"
+          git push

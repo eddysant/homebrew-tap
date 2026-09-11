@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repository="eddysant/photo-slap-modern"
-cask_file="Casks/photo-slap.rb"
+repository="eddysant/siftr"
+cask_file="Casks/siftr.rb"
 # Authenticate the API call when a token is available. Unauthenticated
 # api.github.com requests from Actions runners share a per-IP pool capped at
 # 60/hour, which is what caused the intermittent 403s on this schedule.
@@ -29,7 +29,7 @@ if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
   exit 1
 fi
 
-asset_name="photo-slap-Mac-${version}-Installer.dmg"
+asset_name="siftr-${version}-arm64.dmg"
 asset_url="$(jq -r --arg name "${asset_name}" '.assets[] | select(.name == $name) | .browser_download_url' <<<"${release_json}")"
 if [[ -z "${asset_url}" || "${asset_url}" != "https://github.com/${repository}/releases/download/v${version}/${asset_name}" ]]; then
   echo "Release v${version} does not contain ${asset_name}" >&2
@@ -38,7 +38,7 @@ fi
 
 current_version="$(sed -n 's/^[[:space:]]*version "\([^"]*\)"/\1/p' "${cask_file}")"
 if [[ "${current_version}" == "${version}" ]]; then
-  echo "photo-slap ${version} is already current"
+  echo "siftr ${version} is already current"
   exit 0
 fi
 
@@ -59,4 +59,4 @@ VERSION="${version}" SHA256="${sha256}" ruby -e '
   File.write(file, contents, encoding: "UTF-8")
 ' "${cask_file}"
 
-echo "Updated photo-slap cask to ${version} (${sha256})"
+echo "Updated siftr cask to ${version} (${sha256})"
