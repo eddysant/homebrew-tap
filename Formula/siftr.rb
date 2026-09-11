@@ -7,7 +7,10 @@ class Siftr < Formula
   sha256 "d8bacbdd998ecd35b872531f578cea64fac173f38ed0ffca0fff045844ab4c2f"
   license "MIT"
 
+  # Video frame sampling shells out to ffmpeg when PyAV cannot decode a file.
   depends_on "ffmpeg"
+  # pillow-heif links libheif. Without HEIC most of a Mac photo library is
+  # unreadable, so this is a hard dependency rather than an extra.
   depends_on "libheif"
   depends_on "python@3.12"
 
@@ -15,24 +18,20 @@ class Siftr < Formula
   # signatures pip wheels ship on their bundled dylibs. Stripping a third-party
   # wheel buys nothing here and costs a working install.
   skip_clean "libexec"
-  # Video frame sampling shells out to ffmpeg when PyAV is absent.
-  # pillow-heif links libheif; without HEIC, most of a Mac photo library is
-  # unreadable.
 
   def install
     # Deliberately not `virtualenv_install_with_resources`. That needs every
     # transitive dependency pinned as a `resource`, and torch is ~590 MB of
     # platform-specific wheels that do not resource cleanly — the reason this
     # formula did not exist sooner. Letting pip resolve inside the virtualenv
-    # keeps it maintainable at the cost of network access during install, which
+    # keeps it maintainable, at the cost of network access during install, which
     # is an acceptable trade for a personal tap.
     virtualenv_create(libexec, "python3.12")
 
-    # NOT `venv.pip_install`, which passes --no-deps and would install a siftr
-    # that cannot import numpy. Homebrew creates the virtualenv --without-pip,
-    # so this drives the formula python's pip at it, the same way Homebrew's own
-    # helper does, but with resolution left on.
-    # --python must precede the subcommand; pip rejects it afterwards.
+    # NOT `venv.pip_install`: that passes --no-deps and would install a siftr
+    # which cannot import numpy. Homebrew creates the virtualenv --without-pip,
+    # so this drives the formula python's pip at it the way Homebrew's own helper
+    # does, but with resolution left on. --python must precede the subcommand.
     system formula_opt_bin("python@3.12")/"python3.12", "-m", "pip",
            "--python=#{libexec}/bin/python", "install", "--no-cache-dir",
            "#{buildpath}[ui,faces,video]"
@@ -40,26 +39,30 @@ class Siftr < Formula
     bin.install_symlink libexec/"bin/siftr"
   end
 
-  # Deliberately post_install, not install. Homebrew rewrites Mach-O binaries
-  # (relocation, install-name fixing) *after* `install` returns, which
-  # invalidates the ad-hoc signatures on the dylibs that pip wheels bundle under
-  # .dylibs/. macOS then SIGKILLs any process that loads one — `from PIL import
-  # Image` dies instantly with no output and no traceback. Re-signing here, once
-  # the rewriting is done, is what makes the install usable. The same wheels
-  # installed by plain pip are never rewritten, which is why this only bites
-  # under brew.
+  # Two deliberate choices here:
+  #
+  # `post_install` rather than doing this in `install`, because Homebrew rewrites
+  # Mach-O binaries (relocation, install-name fixing) *after* `install` returns.
+  # That invalidates the ad-hoc signatures on the dylibs pip wheels bundle under
+  # `.dylibs/`, and macOS then SIGKILLs any process that loads one — `from PIL
+  # import Image` dies instantly, with no output and no traceback. Re-signing
+  # after the rewriting is what makes the install usable. Wheels installed by
+  # plain pip are never rewritten, which is why this only bites under brew.
+  #
+  # `post_install` rather than the `post_install_steps` the audit prefers,
+  # because that is a declarative DSL with a fixed vocabulary and cannot express
+  # "re-sign these binaries". `brew style` flags this; it is a deliberate,
+  # unavoidable deviation and Homebrew does not permit inline disable comments.
   def post_install
-    # FNM_DOTMATCH is essential: wheels bundle their dylibs in a *dotted*
-    # directory (`.dylibs/`), which Dir.glob skips by default — and those are
-    # precisely the files whose signatures got invalidated.
+    # FNM_DOTMATCH is essential: the bundled dylibs live in a *dotted* directory
+    # (`.dylibs/`), which Dir.glob skips by default — and those are precisely the
+    # files whose signatures were invalidated.
     machos = Dir.glob(
       "#{libexec}/lib/python3.12/site-packages/**/*.{so,dylib}",
       File::FNM_DOTMATCH,
     )
     ohai "Re-signing #{machos.count} Mach-O files"
-    machos.each do |macho|
-      system "/usr/bin/codesign", "--force", "--sign", "-", macho
-    end
+    machos.each { |macho| system "/usr/bin/codesign", "--force", "--sign", "-", macho }
   end
 
   def caveats
