@@ -9,6 +9,11 @@ class Siftr < Formula
 
   depends_on "ffmpeg"
   depends_on "libheif"
+
+  # Homebrew's cleaner strips Mach-O binaries, which invalidates the ad-hoc
+  # signatures pip wheels ship on their bundled dylibs. Stripping a third-party
+  # wheel buys nothing here and costs a working install.
+  skip_clean "libexec"
   depends_on "python@3.12"
   # Video frame sampling shells out to ffmpeg when PyAV is absent.
   # pillow-heif links libheif; without HEIC, most of a Mac photo library is
@@ -43,7 +48,7 @@ class Siftr < Formula
   # the rewriting is done, is what makes the install usable. The same wheels
   # installed by plain pip are never rewritten, which is why this only bites
   # under brew.
-  def post_install
+  def post_install_steps
     Dir.glob("#{libexec}/lib/python3.12/site-packages/**/*.{so,dylib}").each do |macho|
       system "/usr/bin/codesign", "--force", "--sign", "-", macho
     end
