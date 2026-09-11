@@ -27,7 +27,7 @@ class Siftr < Formula
     # that cannot import numpy. Homebrew creates the virtualenv --without-pip,
     # so this drives the formula python's pip at it, the same way Homebrew's own
     # helper does, but with resolution left on.
-    system Formula["python@3.12"].opt_bin/"python3.12", "-m", "pip", "install",
+    system formula_opt_bin("python@3.12")/"python3.12", "-m", "pip", "install",
            "--python=#{libexec}/bin/python", "--no-cache-dir", "--quiet",
            "#{buildpath}[ui,faces,video]"
 
