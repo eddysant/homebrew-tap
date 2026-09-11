@@ -21,8 +21,17 @@ class Siftr < Formula
     # formula did not exist sooner. Letting pip resolve inside the virtualenv
     # keeps it maintainable at the cost of network access during install, which
     # is an acceptable trade for a personal tap.
-    venv = virtualenv_create(libexec, "python3.12")
-    venv.pip_install_and_link buildpath
+    virtualenv_create(libexec, "python3.12")
+
+    # NOT `venv.pip_install`, which passes --no-deps and would install a siftr
+    # that cannot import numpy. Homebrew creates the virtualenv --without-pip,
+    # so this drives the formula python's pip at it, the same way Homebrew's own
+    # helper does, but with resolution left on.
+    system Formula["python@3.12"].opt_bin/"python3.12", "-m", "pip", "install",
+           "--python=#{libexec}/bin/python", "--no-cache-dir", "--quiet",
+           "#{buildpath}[ui,faces,video]"
+
+    bin.install_symlink libexec/"bin/siftr"
   end
 
   def caveats
