@@ -11,6 +11,11 @@ cask "siftr" do
     strategy :github_latest
   end
 
+  # The app is the interface; this is the engine it drives. Declaring it means
+  # `brew install --cask siftr` gets a working install in one command, with no
+  # pip step and no SIFTR_BIN — /opt/homebrew/bin is one of the paths the app
+  # probes, so it finds the formula's `siftr` on its own.
+  depends_on formula: "eddysant/tap/siftr"
   depends_on arch: :arm64
   depends_on macos: :monterey
 
@@ -24,16 +29,8 @@ cask "siftr" do
   ]
 
   caveats <<~EOS
-    siftr ships the interface only. Its engine — CLIP embeddings and face
-    recognition — is a Python package, installed separately because torch alone
-    would add roughly 600 MB to this download:
-
-      pip install "siftr[ui,faces] @ git+https://github.com/eddysant/siftr"
-
-    A packaged app does not inherit your shell PATH, so if siftr lives in a
-    virtualenv, point at it directly:
-
-      SIFTR_BIN=/path/to/.venv/bin/siftr open -a siftr
+    The engine (CLIP and face recognition, ~1.2 GB) installs as the `siftr`
+    formula alongside this app; models download on first use.
 
     siftr is currently unsigned. If macOS reports that it is damaged, clear the
     quarantine flag once after installation:
