@@ -1,6 +1,6 @@
 cask "photo-slap" do
-  version "1.7.2"
-  sha256 "88611c51bdd5d823b5582a57da9ba665e62ad3007675029e469665ff6241e71b"
+  version "1.7.3"
+  sha256 "238e5300b0ea56228d9ec5699bf503ccf07f4b77bda39b5f3261a80b9f58d63e"
 
   url "https://github.com/eddysant/photo-slap-modern/releases/download/v#{version}/photo-slap-Mac-#{version}-Installer.dmg"
   name "photo-slap"
