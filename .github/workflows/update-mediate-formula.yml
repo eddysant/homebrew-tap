@@ -34,4 +34,17 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Formula/mediate.rb
           git commit -m "Update mediate formula to ${version}"
+          # A push to this repo between checkout and here — another updater,
+          # or a commit made by hand — leaves this one stale and the push is
+          # rejected. Each updater touches only its own file, so a concurrent
+          # push is never a real conflict: rebase onto whatever landed and try
+          # again. The cron times are staggered to make this rare, but a
+          # manual push can land at any moment, which no stagger can prevent.
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            echo "push rejected (attempt ${attempt}); rebasing onto origin/${GITHUB_REF_NAME}"
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          done
           git push
