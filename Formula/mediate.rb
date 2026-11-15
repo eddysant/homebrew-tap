@@ -1,8 +1,8 @@
 class Mediate < Formula
   desc "Standardize photos and videos with strict validation before trashing originals"
   homepage "https://github.com/eddysant/mediate"
-  url "https://github.com/eddysant/mediate/archive/refs/tags/v0.18.0.tar.gz"
-  sha256 "75eb8d4f8e1afad2c4e991954938fba893284816ae278e8d97414494f7e125b3"
+  url "https://github.com/eddysant/mediate/archive/refs/tags/v0.19.0.tar.gz"
+  sha256 "c2f3345e00268c9418f7e6b0e7970d9d4af8760e5ddb354b8298af34c2e6f692"
   license "MIT"
 
   depends_on "exiftool"
